@@ -1,0 +1,36 @@
+version: "3.8"
+services:
+  postgrest:
+    image: postgrest/postgrest
+    ports:
+      - "3000:3000"
+    links:
+      - db:db
+    environment:
+      #PGRST_DB_URI: postgresql://domotic_rest_api:{API_PASSWORD}@db:5432/
+      PGRST_DB_URI: postgresql://domotic_rest_api:{API_PASSWORD}@db:5432/domoticcontrol
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: anonymous
+      PGRST_JWT_SECRET: {API_KEY}
+      PGRST_APP_SETTINGS_JWT_SECRET: {API_KEY}
+    depends_on:
+      - db
+      - domotic
+  db:
+    image: domotic_postgresql
+    environment:
+      POSTGRES_PASSWORD: {DOMOTIC_PASSWORD}
+      POSTGRES_USER: domotic
+      POSTGRES_DB: domoticcontrol
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+        #- ./postgrest/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - '5432:5432'
+  domotic:
+    image: domoticcontrol
+    depends_on:
+      - db
+    ports:
+      - "25566:25566"
+    tty: true

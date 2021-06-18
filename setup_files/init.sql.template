@@ -1,0 +1,24 @@
+CREATE EXTENSION pgcrypto;
+CREATE EXTENSION pgjwt;
+
+CREATE USER domotic_rest_api WITH NOINHERIT PASSWORD '{API_PASSWORD}';
+CREATE ROLE anonymous NOINHERIT;
+CREATE ROLE api_perms NOINHERIT;
+
+GRANT anonymous TO domotic_rest_api;
+GRANT api_perms TO domotic_rest_api;
+
+CREATE TYPE jwt_token AS (
+  token text
+);
+
+CREATE FUNCTION jwt_test() RETURNS public.jwt_token AS $$
+  SELECT public.sign(
+    row_to_json(r), '{API_KEY}'
+  ) AS token
+  FROM (
+    SELECT
+      'api_perms'::text as role--,
+      --extract(epoch from now())::integer + 300 AS exp
+  ) r;
+$$ LANGUAGE sql;
