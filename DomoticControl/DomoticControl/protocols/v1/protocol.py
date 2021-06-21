@@ -12,16 +12,15 @@ class protocol(object):
     def __init__(self, dc):
         self._dc = dc
 
-    def print_id(self, id):
+    def print_id(self, id: int):
         data = id.to_bytes(8, 'big')
         s = ".".join([str(b) for b in data])
         print(s)
 
-    def handle(self, frame_length, data):
+    def handle(self, frame_length: int, data: bytes):
         id = data[:domoticcom.CMD_ID_SIZE]
         id = int.from_bytes(id, 'big')
         del data[:domoticcom.CMD_ID_SIZE]
-
 
         try:
             command = to_dc(id)
@@ -34,7 +33,7 @@ class protocol(object):
             return self._handle_command(command, frame)
 
 
-    def _handle_command(self, command, data):
+    def _handle_command(self, command: Events, data: dict):
 
         handler_name = f"handle_{command.name.lower()}"  
         try:
@@ -44,16 +43,16 @@ class protocol(object):
         else: 
             return handler(data)
 
-    def handle_request_id(self, data):
+    def handle_request_id(self, data: dict):
         module_id = uuid64().int()
         packet = packets.send_id(module_id)
         return packet
 
-    def handle_request_info(self, data):
+    def handle_request_info(self, data: dict):
         packet = packets.send_info(self._dc.info['ID'])
         return packet
 
-    def handle_module_info(self, data):
+    def handle_module_info(self, data: dict):
         device_type = self._dc.db.Device
         component_type = self._dc.db.Component
         s = self._dc.db.session()
@@ -79,7 +78,7 @@ class protocol(object):
         s.close()
         self._dc.observer.send_message(Events.ModuleInfo, data["component_type"], data)
 
-    def handle_send_value(self, data):
+    def handle_send_value(self, data: dict):
         component = self._dc.db.Component
         
         s = self._dc.db.session()
@@ -98,7 +97,7 @@ class protocol(object):
         data["type"] = component_type
         self._dc.observer.send_message(Events.SendValue, component_type, data)
 
-    def handle_request_value(self, data):
+    def handle_request_value(self, data: dict):
         component = self._dc.db.Component
         
         s = self._dc.db.session()

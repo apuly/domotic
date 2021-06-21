@@ -7,7 +7,6 @@ UUID_SIZE = 8 #64 bit device IDS
 DEVICE_TYPE_SIZE = 2 #16 bit device type identifier
 PROTOCOL_SIZE = 1 #8 protocol identifier
 
-
 class to_dc(Enum):
     REQUEST_ID = 0
     REQUEST_INFO = 1

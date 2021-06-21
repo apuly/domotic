@@ -6,6 +6,16 @@ import os
 
 class PluginManager():
     _loaded = False
+    
+
+    """
+    plugins follow the following structure:
+    
+    event-type
+        component-type
+            event-functions
+    """
+    
     _plugins = {}
     def __init__(self, dc):
         self._dc = dc
@@ -16,16 +26,8 @@ class PluginManager():
         for plugin in plugins:
             plugins[plugin] = plugins[plugin](self._dc)
         self._plugins = plugins
-        print(self._plugins)
 
     def get_plugin_by_name(self, name):
         if name in self._plugins:
             return self._plugins[name]
 
-"""
-plugins follow the following structure:
-
-event-type
-    component-type
-        event-functions
-"""

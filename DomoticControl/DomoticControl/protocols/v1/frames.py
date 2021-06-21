@@ -10,12 +10,13 @@ of the module
 The result is a dictionary with the keys and data as defined in the structure
 """
 from . import domoticcom
-
+from typing import Callable
+from data.events import SubscribableEventTypes as Events
 REST = 0
 
 class FrameParser():
     @staticmethod
-    def parse(command, length, data):
+    def parse(command: Events, length: int, data: bytes) -> dict:
         #protocol version and length have already been handled.
         #length is passed anyways for the sake of validation
         structure_array = structures[command]
@@ -49,7 +50,7 @@ class FrameParser():
 
         
 class StructureEntry():
-    def __init__(self, name, length, parser_func):
+    def __init__(self, name: str, length: int, parser_func: Callable):
         self._name = name
         self._length = length
         self._func = parser_func

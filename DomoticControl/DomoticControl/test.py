@@ -55,8 +55,6 @@ class tester():
         sleep(2)
         self.send(b"shutdownowplzuwu")
 
-
-
     def recv_response(self):
         length = int.from_bytes(self.sock.recv(2), 'big')
         version = self.sock.recv(1)
@@ -72,7 +70,6 @@ class tester():
         self.dcid = int.from_bytes(rest[:8], 'big')
         self.time = int.from_bytes(rest[8:], 'big')
         print(f"Received info: time {self.time}, id {self.dcid}") 
-
 
     def handle_set_id(self, dat_len, rest):
         self.uuid = int.from_bytes(rest, 'big')

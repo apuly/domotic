@@ -14,7 +14,7 @@ from sqlalchemy import text
 TEST = False
 
 class DomoticControl(object):
-    def __init__(self, settings):
+    def __init__(self, settings: str):
         with open(settings["DC_INFO_PATH"], 'r') as f:
             self.info = yaml.load(f, Loader=yaml.SafeLoader)
         self.settings = settings
@@ -35,9 +35,8 @@ class DomoticProtocol(asyncio.Protocol):
     def connection_made(self, transport):
         self.transport = transport
 
-    def data_received(self, data):
+    def data_received(self, data: bytes):
         print([hex(c) for c in data])
-        #print(bytearray(data))
         if TEST == True:
             if data.startswith(b"shutdownowplzuwu"):
                 exit(0)
@@ -48,7 +47,7 @@ class DomoticProtocol(asyncio.Protocol):
             print(resp)
             self.transport.write(resp.serialize())
     
-async def main(settings_path):
+async def main(settings_path: str):
     with open(settings_path, 'r') as f:
         settings = yaml.load(f, Loader=yaml.SafeLoader)
 

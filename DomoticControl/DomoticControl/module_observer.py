@@ -4,11 +4,12 @@
 from enum import EnumMeta
 from data.component_types import ComponentTypes as Components
 from data.events import SubscribableEventTypes as Events
+from typing import Union, Callable
 
 class ModuleObserver():
     subscribers = {} #dictionary with subscribers per module type
 
-    def subscribe(self, event_type, module_type, func):
+    def subscribe(self, event_type: Union[Events, int], module_type: Union[Components, int], func: Callable):
         if isinstance(event_type, Events):
             event_type = event_type.value
         if isinstance(module_type, Components):
@@ -22,7 +23,7 @@ class ModuleObserver():
         else:
             self.subscribers[event_type][module_type].add(func)
     
-    def unsubscribe(self, event_type, module_type, func):
+    def unsubscribe(self, event_type: Union[Events, int], module_type: Union[Components, int], func: Callable):
         if isinstance(event_type, Events):
             event_type = event_type.value
         if isinstance(module_type, Components):
@@ -34,7 +35,7 @@ class ModuleObserver():
                 if len(self.subscribers[event_type] == 0):
                     del self.subscribers[event_type]
 
-    def send_message(self, event_type, module_type, data):
+    def send_message(self, event_type: Union[Events, int], module_type: Union[Components, int], data: bytes):
         if isinstance(event_type, Events):
             event_type = event_type.value
         if isinstance(module_type, Components):
