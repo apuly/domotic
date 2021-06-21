@@ -21,8 +21,11 @@ get_concent() {
 	fi
 }
 
+docker --version 1>/dev/null || sudo apt install docker.io
+docker-compose 2>/dev/null || python3 -m pip install docker-compose || sudo apt install docker-compose
+
 if [ -d pgdata ]; then
-	if getconcent "Installation detected. Want to reïnstall? (all data will be lost!)" $1; then
+	if get_concent "Installation detected. Want to reïnstall? (all data will be lost!)" $1; then
 		#don't reinstall
 		exit
 	else
