@@ -1,0 +1,5 @@
+HOST: "0.0.0.0"
+PORT: 25566
+DC_INFO_PATH: "./data/DC_info.yaml"
+URI: "postgresql://domotic:7+5CHr9SdqS2CEGD4x0hAB22yHx25ZN0-1tOPp7gxRivLShrQWCQ0Q==@db:5432/domoticcontrol"
+PLUGINS: "./plugins"
