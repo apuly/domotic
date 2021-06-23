@@ -5,14 +5,16 @@ CREATE USER domotic_rest_api WITH NOINHERIT PASSWORD '{API_PASSWORD}';
 CREATE ROLE anonymous NOINHERIT;
 CREATE ROLE api_perms NOINHERIT;
 
+CREATE SCHEMA if not exists basic_auth;
+
 GRANT anonymous TO domotic_rest_api;
 GRANT api_perms TO domotic_rest_api;
 
-CREATE TYPE jwt_token AS (
+CREATE TYPE basic_auth.jwt_token AS (
   token text
 );
 
-CREATE FUNCTION jwt_test() RETURNS public.jwt_token AS $$
+CREATE FUNCTION basic_auth.jwt_test() RETURNS basic_auth.jwt_token AS $$
   SELECT public.sign(
     row_to_json(r), '{API_KEY}'
   ) AS token
@@ -22,3 +24,76 @@ CREATE FUNCTION jwt_test() RETURNS public.jwt_token AS $$
       --extract(epoch from now())::integer + 300 AS exp
   ) r;
 $$ LANGUAGE sql;
+
+create table if not exists
+basic_auth.user (
+	email	text primary key check ( email ~* '^.+@.+\..+$' ),
+	pass	text not null check (length(pass) < 512),
+	role	name not null check (length(role) < 512)
+);
+
+create or replace function basic_auth.check_role_exists() returns trigger as $$
+begin
+	if not exists (select 1 from pg_roles as r where r.rolname = new.role) then
+		raise foreign_key_violation using message = 
+			'unknown database role: ' || new.role;
+		return null;
+	end if;
+	return new;
+end;
+$$ language plpgsql;
+
+create or replace function
+basic_auth.encrypt_pass() returns trigger as $$
+begin
+	if tg_op = 'INSERT' or new.pass <> old.pass then
+		new.pass = crypt(new.pass, gen_salt('bf'));
+	end if;
+	return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists encrypt_pass on basic_auth.user;
+create trigger encrypt_pass
+	before insert or update on basic_auth.user
+	for each row
+	execute procedure basic_auth.encrypt_pass();
+
+
+create or replace function
+basic_auth.user_role(email text, pass text) returns name
+	language plpgsql
+	as $$
+begin
+	return (
+		SELECT role FROM basic_auth.user
+		WHERE basic_auth.user.email = user_role.email
+		AND basic_auth.user.pass = crypt(user_role.pass, basic_auth.user.pass)
+	);
+end;
+$$;
+
+create or replace function
+login(email text, pass text) returns basic_auth.jwt_token as $$
+declare
+	_role name;
+	result basic_auth.jwt_token;
+	begin
+		select basic_auth.user_role(email, pass) into _role;
+		if _role is null then
+			raise invalid_password using message = 'invalid user or password';
+		end if;
+
+		select sign(
+			row_to_json(r), '{API_KEY}'
+		) as token
+		from (
+			select _role as role, login.email as email,
+			extract(epoch from now())::intege + 60*60 as exp
+		) r
+		into result;
+		return result;
+	end;
+$$ language plpgsql security definer;
+
+grant execute on function login(text, text) to anonymous;

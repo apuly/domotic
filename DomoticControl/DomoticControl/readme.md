@@ -1,7 +1,7 @@
-DomiticCentre is a project for connecting to wifi connected domotic things.
+DomoticCenter is the component of domotic that all the domotic sensors connect to.
+Current status of the component:
 
-Current state/features:
-
-central code base: in development
-plant ground water level: planned
-water pump controller: planned
+base code: done
+watersensor plugin: done
+waterpump plugin: done
+packet data parser rework: planned
